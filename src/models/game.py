@@ -1,5 +1,6 @@
 from src.models.snake import Snake
 from src.models.food import Food
+from src.models.highscore import HighScore
 
 
 class Game:
@@ -9,6 +10,10 @@ class Game:
         """Создаёт новую игру с заданными размерами поля."""
         self.field_width = field_width
         self.field_height = field_height
+
+        self.high_score_storage = HighScore()
+        self.high_score = self.high_score_storage.load()
+
         self.reset()
 
     def reset(self):
@@ -76,4 +81,5 @@ class Game:
         # Начисляем очки и размещаем новую еду.
         if self.snake.get_head() == self.food.get_position():
             self.score += 1
+            self.high_score = self.high_score_storage.update(self.score)
             self.food.spawn(self.snake.body)
