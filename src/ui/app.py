@@ -10,7 +10,7 @@ class SnakeApp:
     CELL_SIZE = 30
     FIELD_WIDTH = 20
     FIELD_HEIGHT = 20
-    FPS = 10
+    FPS = 7
     MIN_FPS = 5
     MAX_FPS = 25
 
