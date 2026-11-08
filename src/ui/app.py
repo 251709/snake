@@ -11,6 +11,8 @@ class SnakeApp:
     FIELD_WIDTH = 20
     FIELD_HEIGHT = 20
     FPS = 10
+    MIN_FPS = 5
+    MAX_FPS = 25
 
     def __init__(self):
         """Инициализирует игровое окно и компоненты игры."""
@@ -37,23 +39,39 @@ class SnakeApp:
         )
 
         self.running = True
+        self.paused = False
+        self.fps = self.FPS
 
     def handle_events(self):
         """Обрабатывает события клавиатуры и окна."""
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
-
+    
             elif event.type == pygame.KEYDOWN:
-                directions = {
-                    pygame.K_UP: (0, -1),
-                    pygame.K_DOWN: (0, 1),
-                    pygame.K_LEFT: (-1, 0),
-                    pygame.K_RIGHT: (1, 0)
-                }
-
-                if event.key in directions:
-                    self.game.change_direction(directions[event.key])
+                if event.key == pygame.K_p and not self.game.game_over:
+                    self.paused = not self.paused
+    
+                elif event.key == pygame.K_r and self.game.game_over:
+                    self.game.reset()
+                    self.paused = False
+    
+                elif event.key in (pygame.K_PLUS, pygame.K_EQUALS, pygame.K_KP_PLUS):
+                    self.fps = min(self.fps + 2, self.MAX_FPS)
+    
+                elif event.key in (pygame.K_MINUS, pygame.K_KP_MINUS):
+                    self.fps = max(self.fps - 2, self.MIN_FPS)
+    
+                elif not self.paused and not self.game.game_over:
+                    directions = {
+                        pygame.K_UP: (0, -1),
+                        pygame.K_DOWN: (0, 1),
+                        pygame.K_LEFT: (-1, 0),
+                        pygame.K_RIGHT: (1, 0)
+                    }
+    
+                    if event.key in directions:
+                        self.game.change_direction(directions[event.key])
 
     def draw_game_over(self):
         """Отображает сообщение о завершении игры."""
@@ -76,19 +94,55 @@ class SnakeApp:
 
         self.screen.blit(text, text_rect)
 
+
     def run(self):
         """Запускает основной игровой цикл."""
         while self.running:
             self.handle_events()
 
-            self.game.update()
+            if not self.paused and not self.game.game_over:
+                self.game.update()
 
             self.renderer.draw(self.game)
 
             if self.game.game_over:
                 self.draw_game_over()
+                restart_text = self.font.render(
+                    "Press R to restart",
+                    True,
+                    (255, 255, 255)
+                )
+                self.screen.blit(
+                    restart_text,
+                    restart_text.get_rect(
+                        center=(
+                            self.screen.get_width() // 2,
+                            self.screen.get_height() // 2 + 50
+                        )
+                    )
+                )
+
+            elif self.paused:
+                self.draw_pause()
 
             pygame.display.flip()
-            self.clock.tick(self.FPS)
+            self.clock.tick(self.fps)
 
         pygame.quit()
+
+    def draw_pause(self):
+        """Отображает сообщение о паузе."""
+        text = self.font.render(
+            "PAUSED",
+            True,
+            (255, 255, 255)
+        )
+
+        text_rect = text.get_rect(
+            center=(
+                self.screen.get_width() // 2,
+                self.screen.get_height() // 2
+            )
+        )
+
+        self.screen.blit(text, text_rect)    
